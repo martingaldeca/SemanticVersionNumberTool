@@ -101,6 +101,7 @@ celerybeat.pid
 src/post_deploy.sh
 src/run_beat.sh
 src/run_worker.sh
+src/run_flower.sh
 
 # SageMath parsed files
 *.sage.py
