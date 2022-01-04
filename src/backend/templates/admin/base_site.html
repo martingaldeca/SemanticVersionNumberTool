@@ -1,0 +1,26 @@
+{# Template: your_app/templates/admin/base_site.html #}
+{% extends "admin/base_site.html" %}
+{% load static i18n %}
+
+{% block extrahead %}
+    <link rel="shortcut icon" type="image/png" href="{% static 'logo/semantic_version_number_tool.png' %}"/>
+{% endblock %}
+
+{% block title %}{{ title }} |  {% trans "Semantic version number tool" %}{% endblock %}
+
+{% block branding %}
+    <h1 id="site-name">
+        <a href="{% url 'admin:index' %}">
+            <img
+                    src="{% static 'logo/semantic_version_number_tool.png' %}"
+                    alt="Semantic version number tool"
+                    height="50%"
+                    width="50%"
+            >
+            <br><br>
+            </span> {% trans "Semantic version number tool" %}
+            <br><br>
+            </span> {% trans "Hey dude, what is my version?." %}
+        </a>
+    </h1>
+{% endblock %}

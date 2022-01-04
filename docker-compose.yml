@@ -1,0 +1,169 @@
+version: '3.7'
+services:
+  backend:
+    container_name: ${PROJECT_NAME}_backend
+    hostname: backend
+    restart: always
+    image: backendimage
+    build:
+      context: .
+      dockerfile: docker/src/Dockerfile
+    command: sh post_deploy.sh
+    env_file:
+      - .env
+    ports:
+      - "${BACKEND_PORT}"
+    volumes:
+      - ./src/static:/src/static
+      - vol_media:/src/media
+      - vol_logs:/src/logs
+      - ./src/.:/src
+      - ./docker/src/post_deploy.sh:/src/post_deploy.sh
+      - ./docker/src/run_worker.sh:/src/run_worker.sh
+    links:
+      - postgres
+      - broker
+    depends_on:
+      - postgres
+      - broker
+      - redis
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 50m
+        max-file: "2"
+
+  nginx:
+    container_name: ${PROJECT_NAME}_nginx
+    hostname: nginx
+    restart: always
+    build:
+      context: ./docker/nginx/
+    ports:
+      - "${NGINX_EXTERNAL_PORT}:${NGINX_EXTERNAL_PORT}"
+      - "${NGINX_EXTERNAL_SSL_PORT}:${NGINX_EXTERNAL_SSL_PORT}"
+    volumes:
+      - ./src/static:/src/static
+      - vol_media:/src/media:cached
+      - vol_logs:/var/log/nginx/:cached
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    depends_on:
+      - backend
+    links:
+      - backend
+      - flower
+    env_file:
+      - .env
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 50m
+        max-file: "2"
+
+  worker:
+    container_name: ${PROJECT_NAME}_worker
+    hostname: worker
+    image: backendimage
+    restart: always
+    env_file:
+      - .env
+    environment:
+      WORKER_NAME: default_worker
+      WORKER_QUEUES: default
+    command: sh run_worker.sh
+    volumes:
+      - ./src/.:/src
+      - vol_logs:/src/logs
+      - ./docker/src/run_worker.sh:/src/run_worker.sh
+    depends_on:
+      - backend
+      - broker
+    links:
+      - postgres
+      - broker
+
+  beat:
+    container_name: ${PROJECT_NAME}_beat
+    hostname: beat
+    image: backendimage
+    restart: always
+    env_file:
+      - .env
+    environment:
+      WORKER_NAME: beat_worker
+      WORKER_QUEUES: default
+    command: sh run_beat.sh
+    volumes:
+      - ./src/.:/src
+      - vol_logs:/src/logs
+      - ./docker/src/run_beat.sh:/src/run_beat.sh
+    depends_on:
+      - broker
+      - worker
+    links:
+      - postgres
+      - broker
+
+  postgres:
+    image: postgres:13
+    container_name: ${PROJECT_NAME}_postgres
+    hostname: postgres
+    restart: 'always'
+    env_file:
+      - .env
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 50m
+        max-file: "2"
+    ports:
+      - "${POSTGRES_EXTERNAL_PORT}:5432"
+    volumes:
+      - vol_postgres_db:/var/lib/postgresql/data
+      - vol_logs:/logs
+
+  flower:
+    image: backendimage
+    container_name: ${PROJECT_NAME}_flower
+    hostname: flower
+    restart: always
+    env_file:
+      - .env
+    environment:
+        FLOWER_BROKER: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@broker:${BROKER_PORT}
+    depends_on:
+      - backend
+      - broker
+    links:
+      - broker
+    command: sh run_flower.sh
+    volumes:
+      - ./src/.:/src
+      - vol_logs:/src/logs
+      - ./docker/src/run_flower.sh:/src/run_flower.sh
+
+  broker:
+    hostname: "broker"
+    container_name: ${PROJECT_NAME}_broker
+    image: rabbitmq:3
+    env_file:
+      - .env
+  redis:
+    image: redis:6.2.3-alpine
+    container_name: ${PROJECT_NAME}_redis
+    env_file:
+      - .env
+    volumes:
+      - vol_redis:/var/lib/redis
+
+volumes:
+  vol_static:
+    driver: local
+  vol_media:
+    driver: local
+  vol_logs:
+    driver: local
+  vol_postgres_db:
+    driver: local
+  vol_redis:
+    driver: local

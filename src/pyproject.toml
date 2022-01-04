@@ -1,0 +1,47 @@
+[tool.poetry]
+name = "SemanticVersionNumberTool"
+version = "0.0.0"
+description = ""
+authors = ["martingc <martingaldeca@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+setuptools = "*0"
+ipython = "*"
+Django = "*"
+gunicorn = "*"
+uvicorn = "*"
+httptools = "*"
+django-3-jet = "*"
+psycopg2 = "*"
+django-extensions = "*"
+django-debug-toolbar = "*"
+django-simple-history = "*"
+django-model-utils = "*"
+whitenoise = "*"
+django_compressor = "*"
+csscompressor = "*"
+flake8 = "*"
+pytest-django = "*"
+factory_boy = "*"
+ipdb = "*"
+freezegun = "*"
+pytest-xdist = "*"
+djangorestframework = "*"
+django-cors-headers = "*"
+celery = "*"
+requests = "*"
+kombu = "*"
+django-celery-beat = "*"
+future = "*"
+django-redis = "*"
+django-waffle = "*"
+django-axes = "*"
+flower = "*"
+djangorestframework-simplejwt = "*"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
