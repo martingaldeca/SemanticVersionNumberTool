@@ -14,9 +14,9 @@ class ProjectListViewTest(APITestAuthenticatedMixin, APITestCase):
     url = reverse('core:project_list')
 
     def test_get_200_OK(self):
-        expected_results = []
-        for i in range(randint(3, 10)):
-            expected_results.append(ProjectSerializer(ProjectFactory()).data)
+        expected_results = [
+            ProjectSerializer(ProjectFactory()).data for _ in range(randint(3, 10))
+        ]
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['results'], expected_results)

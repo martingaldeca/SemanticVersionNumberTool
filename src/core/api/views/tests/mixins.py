@@ -22,7 +22,7 @@ class APITestMixin:
             }
         )
         token = response.data['access']
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + token)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
 
 
 class APITestAuthenticatedMixin(APITestMixin):
